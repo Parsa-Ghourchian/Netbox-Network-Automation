@@ -258,8 +258,8 @@ jq --version
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/netbox-network-automation-lab.git
-cd netbox-network-automation-lab
+https://github.com/Parsa-Ghourchian/Netbox-Network-Automation.git
+cd Netbox-Network-Automation
 ```
 
 Or, if you are working locally:
