@@ -1321,7 +1321,6 @@ Before using this workflow in a production network:
 
 ---
 
-```markdown
 ## 📄 License
 
 This project is licensed under the MIT License.
