@@ -1321,22 +1321,12 @@ Before using this workflow in a production network:
 
 ---
 
+```markdown
 ## 📄 License
 
-Choose the license that matches your use case.
+This project is licensed under the MIT License.
 
-Recommended:
-
-```text
-MIT License
-```
-
-Alternative options:
-
-```text
-Apache-2.0
-Private / Internal Use Only
-```
+See the [LICENSE](LICENSE) file for details.
 
 ---
 
