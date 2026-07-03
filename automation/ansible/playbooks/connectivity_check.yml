@@ -1,0 +1,47 @@
+---
+- name: Connectivity check for MikroTik devices
+  hosts: mikrotik
+  gather_facts: false
+
+  tasks:
+    - name: Check MikroTik system identity
+      community.routeros.command:
+        commands:
+          - /system identity print
+      register: mikrotik_identity
+
+    - name: Show MikroTik identity output
+      ansible.builtin.debug:
+        var: mikrotik_identity.stdout_lines
+
+
+- name: Connectivity check for Cisco devices
+  hosts: cisco
+  gather_facts: false
+
+  tasks:
+    - name: Check Cisco version
+      cisco.ios.ios_command:
+        commands:
+          - show version
+      register: cisco_version
+
+    - name: Show Cisco version output
+      ansible.builtin.debug:
+        var: cisco_version.stdout_lines
+
+
+- name: Connectivity check for Linux hosts
+  hosts: linux_hosts
+  gather_facts: false
+
+  tasks:
+    - name: Check Linux hostname
+      ansible.builtin.command:
+        cmd: hostname
+      register: linux_hostname
+      changed_when: false
+
+    - name: Show Linux hostname
+      ansible.builtin.debug:
+        var: linux_hostname.stdout

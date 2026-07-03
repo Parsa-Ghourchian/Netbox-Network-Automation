@@ -1,0 +1,78 @@
+---
+- name: Safely push generated MikroTik RouterOS configuration
+  hosts: "{{ target_device | default('NO_TARGET_DEVICE_DEFINED') }}"
+  gather_facts: false
+
+  vars:
+    required_approval: "YES_I_UNDERSTAND"
+    generated_config_file: "{{ lookup('env', 'PROJECT_ROOT') }}/automation/generated-configs/mikrotik/{{ inventory_hostname }}.rsc"
+    backup_root: "{{ lookup('env', 'PROJECT_ROOT') }}/automation/backups/mikrotik"
+
+  pre_tasks:
+    - name: Require explicit approval before push
+      ansible.builtin.assert:
+        that:
+          - approve_push is defined
+          - approve_push == required_approval
+        fail_msg: >
+          Push blocked. You must pass:
+          -e approve_push=YES_I_UNDERSTAND
+
+    - name: Check generated MikroTik config exists
+      ansible.builtin.stat:
+        path: "{{ generated_config_file }}"
+      register: generated_config_stat
+      delegate_to: localhost
+
+    - name: Fail if generated MikroTik config is missing
+      ansible.builtin.fail:
+        msg: "Generated config not found: {{ generated_config_file }}. Run: make generate-configs"
+      when: not generated_config_stat.stat.exists
+
+    - name: Create local MikroTik backup directory
+      ansible.builtin.file:
+        path: "{{ backup_root }}"
+        state: directory
+        mode: "0750"
+      delegate_to: localhost
+
+  tasks:
+    - name: Backup current RouterOS config before push
+      community.routeros.command:
+        commands:
+          - /export terse
+      register: routeros_prechange_backup
+
+    - name: Save pre-change RouterOS backup locally
+      ansible.builtin.copy:
+        content: "{{ routeros_prechange_backup.stdout[0] | default('') }}\n"
+        dest: "{{ backup_root }}/{{ inventory_hostname }}-prepush-{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}.rsc"
+        mode: "0640"
+      delegate_to: localhost
+
+    - name: Load generated MikroTik commands
+      ansible.builtin.set_fact:
+        generated_commands: >-
+          {{
+            lookup('file', generated_config_file).splitlines()
+            | reject('match', '^\\s*$')
+            | reject('match', '^\\s*#')
+            | list
+          }}
+
+    - name: Show commands that will be pushed
+      ansible.builtin.debug:
+        var: generated_commands
+
+    - name: Final interactive confirmation
+      ansible.builtin.pause:
+        prompt: "Type ENTER to push generated config to {{ inventory_hostname }}, or Ctrl+C then A to abort"
+
+    - name: Push generated RouterOS commands
+      community.routeros.command:
+        commands: "{{ generated_commands }}"
+      register: routeros_push_result
+
+    - name: Show push result
+      ansible.builtin.debug:
+        var: routeros_push_result.stdout_lines

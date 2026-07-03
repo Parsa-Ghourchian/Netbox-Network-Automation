@@ -1,0 +1,9 @@
+---
+# Linux host connection settings.
+# Prefer SSH keys in real environments.
+
+ansible_connection: ssh
+ansible_user: "{{ lookup('env', 'LINUX_USER') }}"
+ansible_password: "{{ lookup('env', 'LINUX_PASSWORD') | default('', true) }}"
+ansible_port: "{{ lookup('env', 'LINUX_PORT') | default('22', true) | int }}"
+ansible_python_interpreter: /usr/bin/python3

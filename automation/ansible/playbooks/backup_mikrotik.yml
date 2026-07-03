@@ -1,0 +1,29 @@
+---
+- name: Backup MikroTik RouterOS configuration
+  hosts: mikrotik
+  gather_facts: false
+
+  vars:
+    backup_root: "../backups/mikrotik"
+
+  tasks:
+    - name: Create local MikroTik backup directory
+      ansible.builtin.file:
+        path: "{{ backup_root }}"
+        state: directory
+        mode: "0750"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Collect RouterOS export
+      community.routeros.command:
+        commands:
+          - /export terse
+      register: routeros_export
+
+    - name: Save RouterOS export to local file
+      ansible.builtin.copy:
+        content: "{{ routeros_export.stdout[0] | default('') }}\n"
+        dest: "{{ backup_root }}/{{ inventory_hostname }}-{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}.rsc"
+        mode: "0640"
+      delegate_to: localhost

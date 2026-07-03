@@ -1,0 +1,20 @@
+---
+# Cisco IOS / IOS XE connection settings.
+# Credentials are loaded from environment variables by the wrapper script.
+
+ansible_connection: ansible.netcommon.network_cli
+ansible_network_os: cisco.ios.ios
+ansible_network_cli_ssh_type: libssh
+
+ansible_user: "{{ lookup('env', 'CISCO_USER') }}"
+ansible_password: "{{ lookup('env', 'CISCO_PASSWORD') }}"
+ansible_port: "{{ lookup('env', 'CISCO_PORT') | default('22', true) | int }}"
+
+# Enable mode is disabled by default for safety.
+# Set CISCO_ENABLE=true and CISCO_ENABLE_PASSWORD if your lab needs it.
+ansible_become: "{{ lookup('env', 'CISCO_ENABLE') | default('false', true) | bool }}"
+ansible_become_method: enable
+ansible_become_password: "{{ lookup('env', 'CISCO_ENABLE_PASSWORD') | default('', true) }}"
+
+ansible_command_timeout: 60
+ansible_connect_timeout: 60

@@ -1,0 +1,101 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Environment files
+.env
+*.env
+!.env.example
+
+# NetBox / Docker runtime data
+docker/netbox/netbox-docker/
+docker/netbox/.env
+docker/netbox/*.env
+docker/netbox/configuration/
+docker/netbox/reports/
+docker/netbox/scripts/
+
+# Generated configs
+automation/generated-configs/**/*.rsc
+automation/generated-configs/**/*.cfg
+automation/generated-configs/**/*.conf
+automation/generated-configs/**/*.txt
+
+# Backups
+automation/backups/**/*.backup
+automation/backups/**/*.rsc
+automation/backups/**/*.cfg
+automation/backups/**/*.conf
+automation/backups/**/*.txt
+
+# Reports
+automation/reports/**/*.html
+automation/reports/**/*.json
+automation/reports/**/*.txt
+automation/reports/**/*.diff
+
+# Logs
+*.log
+logs/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Ansible
+*.retry
+
+# Local test files
+tmp/
+.cache/
+
+
+
+# Ansible runtime/vendor data
+automation/ansible/collections/
+automation/ansible/.cache/
+automation/ansible/tmp/
+
+# Ansible logs
+logs/
+
+
+# Compliance runtime files
+automation/compliance/current/
+automation/compliance/baseline/
+
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Runtime generated configs
+automation/generated-configs/
+automation/backups/
+automation/reports/
+automation/compliance/current/
+automation/compliance/baseline/
+
+# Python / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local logs
+logs/
+*.log
+
+# Local editor files
+*.swp
+*.swo

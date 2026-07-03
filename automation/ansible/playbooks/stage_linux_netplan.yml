@@ -1,0 +1,85 @@
+---
+- name: Stage generated Linux Netplan config safely
+  hosts: "{{ target_device | default('NO_TARGET_DEVICE_DEFINED') }}"
+  gather_facts: false
+
+  vars:
+    required_approval: "YES_I_UNDERSTAND"
+    generated_config_file: "{{ lookup('env', 'PROJECT_ROOT') }}/automation/generated-configs/linux/{{ inventory_hostname }}.yaml"
+    remote_stage_file: "/tmp/99-netbox-lab.yaml"
+    backup_root: "{{ lookup('env', 'PROJECT_ROOT') }}/automation/backups/linux"
+
+  pre_tasks:
+    - name: Require explicit approval before staging
+      ansible.builtin.assert:
+        that:
+          - approve_push is defined
+          - approve_push == required_approval
+        fail_msg: >
+          Stage blocked. You must pass:
+          -e approve_push=YES_I_UNDERSTAND
+
+    - name: Check generated Linux config exists
+      ansible.builtin.stat:
+        path: "{{ generated_config_file }}"
+      register: generated_config_stat
+      delegate_to: localhost
+
+    - name: Fail if generated Linux config is missing
+      ansible.builtin.fail:
+        msg: "Generated config not found: {{ generated_config_file }}. Run: make generate-configs"
+      when: not generated_config_stat.stat.exists
+
+    - name: Create local Linux backup directory
+      ansible.builtin.file:
+        path: "{{ backup_root }}"
+        state: directory
+        mode: "0750"
+      delegate_to: localhost
+
+  tasks:
+    - name: Backup current Linux network state before staging
+      ansible.builtin.shell: |
+        set -e
+        echo "## hostname"
+        hostname
+        echo
+        echo "## ip address show"
+        ip address show
+        echo
+        echo "## ip route show"
+        ip route show
+        echo
+        echo "## existing netplan files"
+        ls -lah /etc/netplan || true
+        echo
+        echo "## existing netplan content"
+        for file in /etc/netplan/*.yaml; do
+          echo "--- ${file}"
+          cat "${file}"
+          echo
+        done
+      args:
+        executable: /bin/bash
+      register: linux_prechange_backup
+      changed_when: false
+
+    - name: Save Linux pre-stage network backup locally
+      ansible.builtin.copy:
+        content: "{{ linux_prechange_backup.stdout }}\n"
+        dest: "{{ backup_root }}/{{ inventory_hostname }}-prestage-{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}.txt"
+        mode: "0640"
+      delegate_to: localhost
+
+    - name: Stage generated Netplan file to /tmp only
+      ansible.builtin.copy:
+        src: "{{ generated_config_file }}"
+        dest: "{{ remote_stage_file }}"
+        mode: "0640"
+
+    - name: Show staged file path
+      ansible.builtin.debug:
+        msg:
+          - "Generated Netplan file was staged only."
+          - "Remote staged path: {{ remote_stage_file }}"
+          - "It was NOT applied to /etc/netplan."
